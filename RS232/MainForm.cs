@@ -1,10 +1,32 @@
 namespace RS232
 {
-    public partial class Form1 : Form
+    public partial class MainForm : Form
     {
-        public Form1()
+        public MainForm()
         {
             InitializeComponent();
+            SetStatus("Form loaded.");
+        }
+
+        private void transmitButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void receiveButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void pingButton_Click(object sender, EventArgs e)
+        {
+
+        }
+
+        private void SetStatus(string message)
+        {
+            statusLabel.Text = message;
+            Console.WriteLine(message);
         }
     }
 }
