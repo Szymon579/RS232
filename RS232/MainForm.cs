@@ -17,7 +17,7 @@ namespace RS232
             ComboBoxSetup();
 
             transmitRadioButton.Checked = true;
-            textBox.ReadOnly = true;
+            //textBox.ReadOnly = true;
             pingButton.BackColor = SystemColors.Control;
 
             StopButtonUI();
@@ -72,7 +72,11 @@ namespace RS232
 
         private void pingButton_Click(object sender, EventArgs e)
         {
-            //ping
+            GetSettings();
+
+            serialController.OpenPort();
+            serialController.Ping();
+            serialController.ClosePort();
         }
 
         private void startButton_Click(object sender, EventArgs e)

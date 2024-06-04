@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO.Ports;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -20,6 +21,7 @@ namespace RS232
         private Thread readThread;
         private volatile bool continueReading;
         private string terminator;
+        private byte[] pingMessage = { 0x11 };
         
         public SerialController()
         {
@@ -44,8 +46,8 @@ namespace RS232
                 serialPort.Handshake = ConnectionSettings.handshake.ToControl();
                 this.terminator = ConnectionSettings.terminator.ToTerminator();
 
-                serialPort.ReadTimeout = 50;
-                serialPort.WriteTimeout = 50;
+                serialPort.ReadTimeout = 100;
+                serialPort.WriteTimeout = 100;
             }
             catch (Exception ex)
             {
@@ -81,7 +83,7 @@ namespace RS232
         {
             if (serialPort.IsOpen)
             {
-                serialPort.WriteLine(text + terminator);
+                serialPort.WriteLine(text + terminator); //TODO: change to write(), possibly funking with custom terminator
                 StatusUpdateEvent.Invoke(this, "Data sent");
             }
             else
@@ -108,33 +110,28 @@ namespace RS232
                 {
                     byte[] buff = new byte[serialPort.ReadBufferSize+1];
                     try
-                    {
-                        
+                    {     
                         int bytesRead = serialPort.Read(buff, 0, serialPort.ReadBufferSize);
                         string message = System.Text.Encoding.ASCII.GetString(buff, 0, bytesRead);
 
+                        if (buff[0] == pingMessage[0])
+                        {
+                            serialPort.DiscardOutBuffer();
+                            serialPort.Write(new byte[] { 0x11 }, 0, 1);
+                            continue;
+                        }
+
                         MessageReceivedEvent.Invoke(this, message);
-
-                        //string message = serialPort.ReadExisting();
-
-                        //if (message.StartsWith("Ping: "))
-                        //{
-                        //    RespondToPing(message);
-                        //    continue;
-                        //}
-
-                        //MessageReceivedEvent.Invoke(this, message);
                     }
                     catch (TimeoutException) { }
                 }
                 else
                 {
-                    Thread.Sleep(100);
+                    Thread.Sleep(50);
                 }
                     
             }
 
-            //ClosePort();
             Console.WriteLine("Reading stopped");
         } 
 
@@ -148,29 +145,40 @@ namespace RS232
             }
         }
 
-        public TimeSpan Ping()
+        public void Ping()
         {
-            DateTime startTime = DateTime.UtcNow;
-            string pingMessage = "Ping: " + startTime.Ticks.ToString();
-            serialPort.WriteLine(pingMessage);
-            string response = serialPort.ReadLine();
-            DateTime endTime = DateTime.UtcNow;
+            serialPort.ReadTimeout = 5000;
 
-            if (pingMessage.Substring(6) != response.Substring(10))
-                return TimeSpan.Zero;
+            byte[] pingMessage = new byte[] { 0x11 };
+            byte[] responseBuff = new byte[1];
 
-            TimeSpan roundTripDelay = endTime - startTime;
+            Stopwatch stopwatch = new Stopwatch();
 
-            return roundTripDelay;
+            serialPort.DiscardInBuffer();
+            stopwatch.Start();
+            serialPort.Write(pingMessage, 0, 1);
+
+            try
+            {
+                serialPort.Read(responseBuff, 0, 1);
+                stopwatch.Stop();    
+            }
+            catch (TimeoutException ex) 
+            {
+                MessageBox.Show(ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+
+
+            if (responseBuff[0] == pingMessage[0])
+            {
+                MessageBox.Show("Round Trip Delay: " + (float)stopwatch.Elapsed.Microseconds / 1000 + "ms", "Ping", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }      
+            else
+            {
+                MessageBox.Show("Unexpected ping response", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+                
         }
-
-        private void RespondToPing(string message)
-        {
-            long receivedTimestamp = long.Parse(message.Substring(6));
-
-            serialPort.WriteLine("Response: " + receivedTimestamp);
-        }
-
 
     }
 }
