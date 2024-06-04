@@ -1,3 +1,4 @@
+using System.Dynamic;
 using System.IO.Ports;
 
 namespace RS232
@@ -9,23 +10,24 @@ namespace RS232
         public MainForm()
         {
             InitializeComponent();
-            ComponentSetup();
-            SetStatus("Form loaded.");
+            ComboBoxSetup();
+            SetStatus("Form loaded");
 
             serialController = new SerialController();
-            serialController.MessageReceived += MessageReceived;
+            serialController.MessageReceivedEvent += MessageReceived;
+            serialController.StatusUpdateEvent += StatusUpdated;
         }
 
-        private void ComponentSetup()
+        private void ComboBoxSetup()
         {
-            portCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            boudRateCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            dataBitsCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            stopBitsCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            parityCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            controlCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            terminatorCombo.DropDownStyle = ComboBoxStyle.DropDownList;
-            modeCombo.DropDownStyle = ComboBoxStyle.DropDownList;
+            portCombo.DropDownStyle         = ComboBoxStyle.DropDownList;
+            boudRateCombo.DropDownStyle     = ComboBoxStyle.DropDownList;
+            dataBitsCombo.DropDownStyle     = ComboBoxStyle.DropDownList;
+            stopBitsCombo.DropDownStyle     = ComboBoxStyle.DropDownList;
+            parityCombo.DropDownStyle       = ComboBoxStyle.DropDownList;
+            controlCombo.DropDownStyle      = ComboBoxStyle.DropDownList;
+            terminatorCombo.DropDownStyle   = ComboBoxStyle.DropDownList;
+            modeCombo.DropDownStyle         = ComboBoxStyle.DropDownList;
 
             portCombo.Items.Clear();
             boudRateCombo.Items.Clear();
@@ -45,35 +47,36 @@ namespace RS232
             terminatorCombo.Items.AddRange(ConnectionParams.GetTerminators());
             modeCombo.Items.AddRange(ConnectionParams.GetModes());
 
-            portCombo.SelectedIndex = 0;
-            boudRateCombo.SelectedIndex = 0;
-            dataBitsCombo.SelectedIndex = 0;
-            stopBitsCombo.SelectedIndex = 0;
-            parityCombo.SelectedIndex = 0;
-            controlCombo.SelectedIndex = 0;
-            terminatorCombo.SelectedIndex = 0;
-            modeCombo.SelectedIndex = 0;
-
-
-
-
+            portCombo.SelectedIndex         = 0;
+            boudRateCombo.SelectedIndex     = 0;
+            dataBitsCombo.SelectedIndex     = 0;
+            stopBitsCombo.SelectedIndex     = 0;
+            parityCombo.SelectedIndex       = 0;
+            controlCombo.SelectedIndex      = 0;
+            terminatorCombo.SelectedIndex   = 0;
+            modeCombo.SelectedIndex         = 0;
         }
+
         private void SetStatus(string message)
         {
             statusLabel.Text = message;
             Console.WriteLine(message);
         }
 
+        private void GetSettings()
+        {
+            ConnectionSettings.portName = portCombo.SelectedItem.ToString();
+            ConnectionSettings.boudRate = Int32.Parse(boudRateCombo.SelectedItem.ToString());
+            ConnectionSettings.dataBits = Int32.Parse(dataBitsCombo.SelectedItem.ToString());
+            ConnectionSettings.stopBits = stopBitsCombo.SelectedIndex;
+            ConnectionSettings.parity = parityCombo.SelectedIndex;
+            ConnectionSettings.handshake = controlCombo.SelectedItem.ToString();
+            ConnectionSettings.terminator = terminatorCombo.SelectedItem.ToString().ToTerminator();   
+        }
+
         private void transmitButton_Click(object sender, EventArgs e)
         {
-            string portName = portCombo.SelectedItem.ToString();
-            int boudRate = Int32.Parse(boudRateCombo.SelectedItem.ToString());
-            int dataBits = Int32.Parse(dataBitsCombo.SelectedItem.ToString());
-            StopBits stopBits = (StopBits)stopBitsCombo.SelectedIndex + 1;
-            Parity parity = (Parity)parityCombo.SelectedIndex;
-            Handshake handshake = (Handshake)controlCombo.SelectedIndex;
-
-            serialController.PortSetup(portName, boudRate, dataBits, stopBits, parity, handshake);
+            GetSettings();
             serialController.OpenPort();
 
             SetStatus("Transmitting");
@@ -81,14 +84,7 @@ namespace RS232
 
         private void receiveButton_Click(object sender, EventArgs e)
         {
-            string portName = portCombo.SelectedItem.ToString();
-            int boudRate = Int32.Parse(boudRateCombo.SelectedItem.ToString());
-            int dataBits = Int32.Parse(dataBitsCombo.SelectedItem.ToString());
-            StopBits stopBits = (StopBits)stopBitsCombo.SelectedIndex + 1;
-            Parity parity = (Parity)parityCombo.SelectedIndex;
-            Handshake handshake = (Handshake)controlCombo.SelectedIndex;
-
-            serialController.PortSetup(portName, boudRate, dataBits, stopBits, parity, handshake);
+            GetSettings();
             serialController.OpenPort();
             serialController.StartReading();
 
@@ -106,7 +102,13 @@ namespace RS232
         private void stopButton_Click(object sender, EventArgs e)
         {
             serialController.StopReading();
-            
+            serialController.ClosePort();
+        }
+
+        private void sendButton_Click(object sender, EventArgs e)
+        {
+            serialController.Write(inputTextBox.Text);
+            inputTextBox.Clear();
         }
 
         private void MessageReceived(object sender, string message)
@@ -117,10 +119,13 @@ namespace RS232
             }));
         }
 
-        private void sendButton_Click(object sender, EventArgs e)
+        private void StatusUpdated(object sender, string message)
         {
-            serialController.Write(inputTextBox.Text);
-            inputTextBox.Clear();
+            Invoke(new Action(() =>
+            {
+                statusLabel.Text = message;
+            }));
         }
+  
     }
 }

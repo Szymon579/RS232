@@ -1,5 +1,6 @@
 ﻿
 using System.IO.Ports;
+using System.Runtime.CompilerServices;
 
 public static class ConnectionParams
 {
@@ -79,6 +80,42 @@ public static class ConnectionParams
             "Text",
             "Binary",
             ];
+    }
+
+    public static Handshake ToControl(this string control)
+    {
+        switch (control)
+        {
+            case "None":
+                return Handshake.None;
+            case "XON/XOFF":
+                return Handshake.XOnXOff;
+            case "DTR/DSR":
+                return Handshake.RequestToSend; //TODO
+            case "RTS/CTS":
+                return Handshake.RequestToSend;
+            default:
+                return Handshake.None;
+        }
+    }
+
+    public static string ToTerminator(this string terminator)
+    {
+        switch (terminator)
+        {
+            case "None":
+                return "";
+            case "CR":
+                return "\r";
+            case "LF":
+                return "\n";
+            case "CR-LF":
+                return "\r\n";
+            case "Custom":
+                return "Custom";
+            default:
+                return "";
+        }
     }
 
 }

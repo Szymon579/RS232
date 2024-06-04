@@ -6,91 +6,130 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml;
 using System.Xml.Linq;
 
 namespace RS232
 {
     class SerialController
     {
-        public event EventHandler<string> MessageReceived;
-
+        public event EventHandler<string> MessageReceivedEvent;
+        public event EventHandler<string> StatusUpdateEvent;
 
         private SerialPort serialPort;
-        private bool continueReading = false;
+        private Thread readThread;
+        private bool continueReading;
+        private string terminator;
         
         public SerialController()
         {
             serialPort = new SerialPort();
+            readThread = null;
+            continueReading = false;
         }
 
-        public void PortSetup(string portName, int boudRate, int dataBits, 
-                    StopBits stopBits, Parity parity, Handshake handshake)
+        public void PortSetup()
         {
-            serialPort.PortName = portName;
-            serialPort.BaudRate = boudRate;
-            serialPort.DataBits = dataBits;
-            serialPort.StopBits = stopBits;
-            serialPort.Parity = parity;
-            serialPort.Handshake = handshake;
-
-            serialPort.ReadTimeout = 500;
-            serialPort.WriteTimeout = 500;
+            //avoid setup on opened port
+            if (serialPort.IsOpen)
+                serialPort.Close();
+            
+            serialPort.PortName  = ConnectionSettings.portName;
+            serialPort.BaudRate  = ConnectionSettings.boudRate;
+            serialPort.DataBits  = ConnectionSettings.dataBits;
+            serialPort.StopBits  = (StopBits)ConnectionSettings.stopBits;
+            serialPort.Parity    = (Parity)ConnectionSettings.parity;
+            serialPort.Handshake = ConnectionSettings.handshake.ToControl(); 
+            this.terminator      = ConnectionSettings.terminator.ToTerminator();
+            
+            serialPort.ReadTimeout = 50;
+            serialPort.WriteTimeout = 50;
         }
 
         public void OpenPort()
         {
             if(!serialPort.IsOpen)
+            {
+                PortSetup();
+
                 serialPort.Open();
+                StatusUpdateEvent.Invoke(this, "Port open");
+            }         
         }
 
         public void ClosePort()
         {
-            if(serialPort.IsOpen) 
+            if(serialPort.IsOpen)
+            {
                 serialPort.Close();
+                StatusUpdateEvent.Invoke(this, "Port closed");
+            }   
         }
 
         public void Write(string text)
         {
-            serialPort.WriteLine(text);
+            if (serialPort.IsOpen)
+            {
+                serialPort.WriteLine(text + terminator);
+                StatusUpdateEvent.Invoke(this, "Data sent");
+            }
+            else
+            {
+                StatusUpdateEvent.Invoke(this, "Port closed, could not write!");
+            }
         }
 
-        private async void Read()
+        public void StartReading()
+        {
+            if (!continueReading)
+            {
+                continueReading = true;
+                readThread = new Thread(Read);
+                readThread.Start();
+            }
+        }
+
+        private void Read()
         {
             while (continueReading)
             {
-                try
+                if(serialPort.IsOpen)
                 {
-                    string message = serialPort.ReadLine();
-                    //Console.WriteLine(message);
-
-                    if (message.StartsWith("Ping: "))
+                    try
                     {
-                        RespondToPing(message);
-                        continue;
+                        byte[] buff = new byte[serialPort.ReadBufferSize + 1];
+                        int bytesRead = serialPort.Read(buff, 0, serialPort.ReadBufferSize + 1);
+                        string message = System.Text.Encoding.ASCII.GetString(buff, 0, bytesRead);
+
+                        MessageReceivedEvent.Invoke(this, message);
+
+                        //string message = serialPort.ReadExisting();
+
+                        //if (message.StartsWith("Ping: "))
+                        //{
+                        //    RespondToPing(message);
+                        //    continue;
+                        //}
+
+                        //MessageReceivedEvent.Invoke(this, message);
                     }
-                    
-                    MessageReceived.Invoke(this, message);
+                    catch (TimeoutException) { }
                 }
-                catch (TimeoutException) { }
+                    
             }
+
             ClosePort();
             Console.WriteLine("Reading stopped");
-        }
-
-        public async Task StartReading()
-        {
-            continueReading = true;
-
-            await Task.Run(() =>
-            {
-                Read();
-            });
-        }
+        } 
 
         public void StopReading()
         {
-            continueReading = false;
-            //ClosePort();
+            if(continueReading)
+            {
+                continueReading = false;
+                readThread.Join();
+                readThread = null;
+            }
         }
 
         public TimeSpan Ping()
