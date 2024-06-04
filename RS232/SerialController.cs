@@ -18,7 +18,7 @@ namespace RS232
 
         private SerialPort serialPort;
         private Thread readThread;
-        private bool continueReading;
+        private volatile bool continueReading;
         private string terminator;
         
         public SerialController()
@@ -28,33 +28,44 @@ namespace RS232
             continueReading = false;
         }
 
-        public void PortSetup()
+        public bool PortSetup() 
         {
             //avoid setup on opened port
             if (serialPort.IsOpen)
                 serialPort.Close();
-            
-            serialPort.PortName  = ConnectionSettings.portName;
-            serialPort.BaudRate  = ConnectionSettings.boudRate;
-            serialPort.DataBits  = ConnectionSettings.dataBits;
-            serialPort.StopBits  = (StopBits)ConnectionSettings.stopBits;
-            serialPort.Parity    = (Parity)ConnectionSettings.parity;
-            serialPort.Handshake = ConnectionSettings.handshake.ToControl(); 
-            this.terminator      = ConnectionSettings.terminator.ToTerminator();
-            
-            serialPort.ReadTimeout = 50;
-            serialPort.WriteTimeout = 50;
+
+            try
+            {
+                serialPort.PortName = ConnectionSettings.portName;
+                serialPort.BaudRate = ConnectionSettings.boudRate;
+                serialPort.DataBits = ConnectionSettings.dataBits;
+                serialPort.StopBits = (StopBits)ConnectionSettings.stopBits;
+                serialPort.Parity = (Parity)ConnectionSettings.parity;
+                serialPort.Handshake = ConnectionSettings.handshake.ToControl();
+                this.terminator = ConnectionSettings.terminator.ToTerminator();
+
+                serialPort.ReadTimeout = 50;
+                serialPort.WriteTimeout = 50;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message,"Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
+            }
+
+            return true;
         }
 
         public void OpenPort()
         {
-            if(!serialPort.IsOpen)
-            {
-                PortSetup();
+            if (serialPort.IsOpen)
+                return;
 
-                serialPort.Open();
-                StatusUpdateEvent.Invoke(this, "Port open");
-            }         
+            if (!PortSetup())
+                return;
+
+            serialPort.Open();
+            StatusUpdateEvent.Invoke(this, "Port open");            
         }
 
         public void ClosePort()
@@ -95,10 +106,11 @@ namespace RS232
             {
                 if(serialPort.IsOpen)
                 {
+                    byte[] buff = new byte[serialPort.ReadBufferSize+1];
                     try
                     {
-                        byte[] buff = new byte[serialPort.ReadBufferSize + 1];
-                        int bytesRead = serialPort.Read(buff, 0, serialPort.ReadBufferSize + 1);
+                        
+                        int bytesRead = serialPort.Read(buff, 0, serialPort.ReadBufferSize);
                         string message = System.Text.Encoding.ASCII.GetString(buff, 0, bytesRead);
 
                         MessageReceivedEvent.Invoke(this, message);
@@ -115,10 +127,14 @@ namespace RS232
                     }
                     catch (TimeoutException) { }
                 }
+                else
+                {
+                    Thread.Sleep(100);
+                }
                     
             }
 
-            ClosePort();
+            //ClosePort();
             Console.WriteLine("Reading stopped");
         } 
 

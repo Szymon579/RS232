@@ -6,37 +6,36 @@ namespace RS232
     public partial class MainForm : Form
     {
         SerialController serialController;
+        List<ComboBox> portSettings;
 
         public MainForm()
         {
+            serialController = new SerialController();
+            portSettings = new List<ComboBox>();
+            serialController.MessageReceivedEvent += MessageReceived;
+            serialController.StatusUpdateEvent += StatusUpdated;
+
             InitializeComponent();
             ComboBoxSetup();
             SetStatus("Form loaded");
-
-            serialController = new SerialController();
-            serialController.MessageReceivedEvent += MessageReceived;
-            serialController.StatusUpdateEvent += StatusUpdated;
         }
 
         private void ComboBoxSetup()
-        {
-            portCombo.DropDownStyle         = ComboBoxStyle.DropDownList;
-            boudRateCombo.DropDownStyle     = ComboBoxStyle.DropDownList;
-            dataBitsCombo.DropDownStyle     = ComboBoxStyle.DropDownList;
-            stopBitsCombo.DropDownStyle     = ComboBoxStyle.DropDownList;
-            parityCombo.DropDownStyle       = ComboBoxStyle.DropDownList;
-            controlCombo.DropDownStyle      = ComboBoxStyle.DropDownList;
-            terminatorCombo.DropDownStyle   = ComboBoxStyle.DropDownList;
-            modeCombo.DropDownStyle         = ComboBoxStyle.DropDownList;
+        {    
+            portSettings.Add(portCombo);
+            portSettings.Add(boudRateCombo);
+            portSettings.Add(dataBitsCombo);
+            portSettings.Add(stopBitsCombo);
+            portSettings.Add(parityCombo);
+            portSettings.Add(controlCombo);
+            portSettings.Add(terminatorCombo);
+            portSettings.Add(modeCombo);
 
-            portCombo.Items.Clear();
-            boudRateCombo.Items.Clear();
-            dataBitsCombo.Items.Clear();
-            stopBitsCombo.Items.Clear();
-            parityCombo.Items.Clear();
-            controlCombo.Items.Clear();
-            terminatorCombo.Items.Clear();
-            modeCombo.Items.Clear();
+            foreach (ComboBox combo in portSettings)
+            {
+                combo.DropDownStyle = ComboBoxStyle.DropDownList;
+                combo.Items.Clear();
+            }
 
             portCombo.Items.AddRange(ConnectionParams.GetPortNames());
             boudRateCombo.Items.AddRange(ConnectionParams.GetBoudRates());
@@ -47,20 +46,11 @@ namespace RS232
             terminatorCombo.Items.AddRange(ConnectionParams.GetTerminators());
             modeCombo.Items.AddRange(ConnectionParams.GetModes());
 
-            portCombo.SelectedIndex         = 0;
-            boudRateCombo.SelectedIndex     = 0;
-            dataBitsCombo.SelectedIndex     = 0;
-            stopBitsCombo.SelectedIndex     = 0;
-            parityCombo.SelectedIndex       = 0;
-            controlCombo.SelectedIndex      = 0;
-            terminatorCombo.SelectedIndex   = 0;
-            modeCombo.SelectedIndex         = 0;
-        }
-
-        private void SetStatus(string message)
-        {
-            statusLabel.Text = message;
-            Console.WriteLine(message);
+            foreach (ComboBox combo in portSettings)
+            {
+                combo.SelectedIndex = 0;
+            }
+            stopBitsCombo.SelectedIndex = 1;
         }
 
         private void GetSettings()
@@ -101,6 +91,7 @@ namespace RS232
 
         private void stopButton_Click(object sender, EventArgs e)
         {
+            //Invoke(new Action(() => { serialController.StopReading(); }));
             serialController.StopReading();
             serialController.ClosePort();
         }
@@ -115,7 +106,7 @@ namespace RS232
         {
             Invoke(new Action(() =>
             {
-                textBox.AppendText(message + Environment.NewLine);
+                textBox.AppendText(message);
             }));
         }
 
@@ -126,6 +117,12 @@ namespace RS232
                 statusLabel.Text = message;
             }));
         }
-  
+
+        private void SetStatus(string message)
+        {
+            statusLabel.Text = message;
+            Console.WriteLine(message);
+        }
+
     }
 }
