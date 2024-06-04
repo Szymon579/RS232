@@ -12,16 +12,22 @@ namespace RS232
         {
             serialController = new SerialController();
             portSettings = new List<ComboBox>();
-            serialController.MessageReceivedEvent += MessageReceived;
-            serialController.StatusUpdateEvent += StatusUpdated;
 
             InitializeComponent();
             ComboBoxSetup();
-            SetStatus("Form loaded");
+
+            transmitRadioButton.Checked = true;
+            textBox.ReadOnly = true;
+            pingButton.BackColor = SystemColors.Control;
+
+            StopButtonUI();
+
+            serialController.MessageReceivedEvent += MessageReceived;
+            serialController.StatusUpdateEvent += StatusUpdated;
         }
 
         private void ComboBoxSetup()
-        {    
+        {
             portSettings.Add(portCombo);
             portSettings.Add(boudRateCombo);
             portSettings.Add(dataBitsCombo);
@@ -61,44 +67,104 @@ namespace RS232
             ConnectionSettings.stopBits = stopBitsCombo.SelectedIndex;
             ConnectionSettings.parity = parityCombo.SelectedIndex;
             ConnectionSettings.handshake = controlCombo.SelectedItem.ToString();
-            ConnectionSettings.terminator = terminatorCombo.SelectedItem.ToString().ToTerminator();   
-        }
-
-        private void transmitButton_Click(object sender, EventArgs e)
-        {
-            GetSettings();
-            serialController.OpenPort();
-
-            SetStatus("Transmitting");
-        }
-
-        private void receiveButton_Click(object sender, EventArgs e)
-        {
-            GetSettings();
-            serialController.OpenPort();
-            serialController.StartReading();
-
-            SetStatus("Receiving");
+            ConnectionSettings.terminator = terminatorCombo.SelectedItem.ToString().ToTerminator();
         }
 
         private void pingButton_Click(object sender, EventArgs e)
         {
-            serialController.OpenPort();
-            TimeSpan pingTime = serialController.Ping();
-            MessageBox.Show("Ping: " + pingTime.TotalMilliseconds + "ms");
-            serialController.ClosePort();
+            //ping
+        }
+
+        private void startButton_Click(object sender, EventArgs e)
+        {
+            GetSettings();
+
+            if (transmitRadioButton.Checked)
+            {
+                serialController.OpenPort();
+                
+                sendButton.Enabled = true;
+                inputTextBox.Enabled = true;
+                echoCheckBox.Enabled = true;
+                
+                SetStatus("Transmitting");
+            }
+
+            if (receiveRadioButton.Checked)
+            {
+                serialController.OpenPort();
+                serialController.StartReading();
+
+                sendButton.Enabled = false;
+                inputTextBox.Enabled = false;
+                echoCheckBox.Enabled = false;
+
+                SetStatus("Receiving");
+            }
+
+            if (transceiveRadioButton.Checked)
+            {
+                serialController.OpenPort();
+                serialController.StartReading();
+
+                sendButton.Enabled = true;
+                inputTextBox.Enabled = true;
+                echoCheckBox.Enabled = true;
+
+                SetStatus("Transceiving");
+            }
+
+            StartButtonUI();
+        }
+
+        private void StartButtonUI()
+        {
+            paramsPanel.Enabled = false;
+            radioGroupBox.Enabled = false;
+
+            pingButton.Enabled = false;
+
+            startButton.Enabled = false;
+            startButton.BackColor = Color.Green;
+
+            stopButton.Enabled = true;
+            stopButton.BackColor = SystemColors.Control;
         }
 
         private void stopButton_Click(object sender, EventArgs e)
         {
-            //Invoke(new Action(() => { serialController.StopReading(); }));
             serialController.StopReading();
             serialController.ClosePort();
+
+            StopButtonUI();
+        }
+
+        private void StopButtonUI()
+        {
+            paramsPanel.Enabled = true;
+            radioGroupBox.Enabled = true;
+
+            sendButton.Enabled = false;
+            inputTextBox.Enabled = false;
+            echoCheckBox.Enabled = false;
+
+            pingButton.Enabled = true;
+            
+
+            stopButton.Enabled = false;
+            stopButton.BackColor = Color.Red;
+
+            startButton.Enabled = true;
+            startButton.BackColor = SystemColors.Control;
         }
 
         private void sendButton_Click(object sender, EventArgs e)
         {
             serialController.Write(inputTextBox.Text);
+
+            if (echoCheckBox.Checked)
+                textBox.AppendText("> " + inputTextBox.Text + "\n");
+
             inputTextBox.Clear();
         }
 
@@ -124,5 +190,6 @@ namespace RS232
             Console.WriteLine(message);
         }
 
+        
     }
 }

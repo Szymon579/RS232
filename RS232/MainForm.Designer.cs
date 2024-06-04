@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            panel1 = new Panel();
+            paramsPanel = new Panel();
             modeCombo = new ComboBox();
             terminatorCombo = new ComboBox();
             controlCombo = new ComboBox();
@@ -46,43 +46,48 @@
             label2 = new Label();
             label1 = new Label();
             panel2 = new Panel();
+            pingButton = new Button();
+            echoCheckBox = new CheckBox();
+            radioGroupBox = new GroupBox();
+            transceiveRadioButton = new RadioButton();
+            receiveRadioButton = new RadioButton();
+            transmitRadioButton = new RadioButton();
+            inputTextBox = new TextBox();
             sendButton = new Button();
             textBox = new RichTextBox();
             stopButton = new Button();
-            pingButton = new Button();
-            receiveButton = new Button();
-            transmitButton = new Button();
+            startButton = new Button();
             statusStrip1 = new StatusStrip();
             statusLabel = new ToolStripStatusLabel();
-            inputTextBox = new TextBox();
-            panel1.SuspendLayout();
+            paramsPanel.SuspendLayout();
             panel2.SuspendLayout();
+            radioGroupBox.SuspendLayout();
             statusStrip1.SuspendLayout();
             SuspendLayout();
             // 
-            // panel1
+            // paramsPanel
             // 
-            panel1.Controls.Add(modeCombo);
-            panel1.Controls.Add(terminatorCombo);
-            panel1.Controls.Add(controlCombo);
-            panel1.Controls.Add(parityCombo);
-            panel1.Controls.Add(stopBitsCombo);
-            panel1.Controls.Add(dataBitsCombo);
-            panel1.Controls.Add(boudRateCombo);
-            panel1.Controls.Add(portCombo);
-            panel1.Controls.Add(label8);
-            panel1.Controls.Add(label7);
-            panel1.Controls.Add(label6);
-            panel1.Controls.Add(label5);
-            panel1.Controls.Add(label4);
-            panel1.Controls.Add(label3);
-            panel1.Controls.Add(label2);
-            panel1.Controls.Add(label1);
-            panel1.Dock = DockStyle.Top;
-            panel1.Location = new Point(10, 10);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(548, 94);
-            panel1.TabIndex = 0;
+            paramsPanel.Controls.Add(modeCombo);
+            paramsPanel.Controls.Add(terminatorCombo);
+            paramsPanel.Controls.Add(controlCombo);
+            paramsPanel.Controls.Add(parityCombo);
+            paramsPanel.Controls.Add(stopBitsCombo);
+            paramsPanel.Controls.Add(dataBitsCombo);
+            paramsPanel.Controls.Add(boudRateCombo);
+            paramsPanel.Controls.Add(portCombo);
+            paramsPanel.Controls.Add(label8);
+            paramsPanel.Controls.Add(label7);
+            paramsPanel.Controls.Add(label6);
+            paramsPanel.Controls.Add(label5);
+            paramsPanel.Controls.Add(label4);
+            paramsPanel.Controls.Add(label3);
+            paramsPanel.Controls.Add(label2);
+            paramsPanel.Controls.Add(label1);
+            paramsPanel.Dock = DockStyle.Top;
+            paramsPanel.Location = new Point(10, 10);
+            paramsPanel.Name = "paramsPanel";
+            paramsPanel.Size = new Size(548, 94);
+            paramsPanel.TabIndex = 0;
             // 
             // modeCombo
             // 
@@ -230,24 +235,96 @@
             // 
             // panel2
             // 
+            panel2.Controls.Add(pingButton);
+            panel2.Controls.Add(echoCheckBox);
+            panel2.Controls.Add(radioGroupBox);
             panel2.Controls.Add(inputTextBox);
             panel2.Controls.Add(sendButton);
             panel2.Controls.Add(textBox);
             panel2.Controls.Add(stopButton);
-            panel2.Controls.Add(pingButton);
-            panel2.Controls.Add(receiveButton);
-            panel2.Controls.Add(transmitButton);
+            panel2.Controls.Add(startButton);
             panel2.Dock = DockStyle.Fill;
             panel2.Location = new Point(10, 104);
             panel2.Name = "panel2";
-            panel2.Size = new Size(548, 332);
+            panel2.Size = new Size(548, 344);
             panel2.TabIndex = 1;
+            // 
+            // pingButton
+            // 
+            pingButton.Location = new Point(278, 16);
+            pingButton.Name = "pingButton";
+            pingButton.Size = new Size(81, 32);
+            pingButton.TabIndex = 10;
+            pingButton.Text = "Ping";
+            pingButton.UseVisualStyleBackColor = true;
+            pingButton.Click += pingButton_Click;
+            // 
+            // echoCheckBox
+            // 
+            echoCheckBox.AutoSize = true;
+            echoCheckBox.Location = new Point(493, 293);
+            echoCheckBox.Name = "echoCheckBox";
+            echoCheckBox.Size = new Size(52, 19);
+            echoCheckBox.TabIndex = 9;
+            echoCheckBox.Text = "Echo";
+            echoCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // radioGroupBox
+            // 
+            radioGroupBox.Controls.Add(transceiveRadioButton);
+            radioGroupBox.Controls.Add(receiveRadioButton);
+            radioGroupBox.Controls.Add(transmitRadioButton);
+            radioGroupBox.Location = new Point(10, 9);
+            radioGroupBox.Name = "radioGroupBox";
+            radioGroupBox.Size = new Size(262, 39);
+            radioGroupBox.TabIndex = 8;
+            radioGroupBox.TabStop = false;
+            // 
+            // transceiveRadioButton
+            // 
+            transceiveRadioButton.AutoSize = true;
+            transceiveRadioButton.Location = new Point(173, 14);
+            transceiveRadioButton.Name = "transceiveRadioButton";
+            transceiveRadioButton.Size = new Size(83, 19);
+            transceiveRadioButton.TabIndex = 8;
+            transceiveRadioButton.TabStop = true;
+            transceiveRadioButton.Text = "Transceiver";
+            transceiveRadioButton.UseVisualStyleBackColor = true;
+            // 
+            // receiveRadioButton
+            // 
+            receiveRadioButton.AutoSize = true;
+            receiveRadioButton.Location = new Point(98, 14);
+            receiveRadioButton.Name = "receiveRadioButton";
+            receiveRadioButton.Size = new Size(69, 19);
+            receiveRadioButton.TabIndex = 7;
+            receiveRadioButton.TabStop = true;
+            receiveRadioButton.Text = "Receiver";
+            receiveRadioButton.UseVisualStyleBackColor = true;
+            // 
+            // transmitRadioButton
+            // 
+            transmitRadioButton.AutoSize = true;
+            transmitRadioButton.Location = new Point(8, 14);
+            transmitRadioButton.Name = "transmitRadioButton";
+            transmitRadioButton.Size = new Size(84, 19);
+            transmitRadioButton.TabIndex = 6;
+            transmitRadioButton.TabStop = true;
+            transmitRadioButton.Text = "Transmitter";
+            transmitRadioButton.UseVisualStyleBackColor = true;
+            // 
+            // inputTextBox
+            // 
+            inputTextBox.Location = new Point(10, 291);
+            inputTextBox.Name = "inputTextBox";
+            inputTextBox.Size = new Size(389, 23);
+            inputTextBox.TabIndex = 5;
             // 
             // sendButton
             // 
-            sendButton.Location = new Point(405, 272);
+            sendButton.Location = new Point(405, 291);
             sendButton.Name = "sendButton";
-            sendButton.Size = new Size(131, 23);
+            sendButton.Size = new Size(82, 23);
             sendButton.TabIndex = 4;
             sendButton.Text = "Send";
             sendButton.UseVisualStyleBackColor = true;
@@ -255,7 +332,7 @@
             // 
             // textBox
             // 
-            textBox.Location = new Point(3, 35);
+            textBox.Location = new Point(3, 54);
             textBox.Name = "textBox";
             textBox.Size = new Size(542, 231);
             textBox.TabIndex = 2;
@@ -263,48 +340,28 @@
             // 
             // stopButton
             // 
-            stopButton.Location = new Point(405, 6);
+            stopButton.Location = new Point(452, 16);
             stopButton.Name = "stopButton";
-            stopButton.Size = new Size(131, 23);
+            stopButton.Size = new Size(81, 32);
             stopButton.TabIndex = 3;
             stopButton.Text = "Stop";
             stopButton.UseVisualStyleBackColor = true;
             stopButton.Click += stopButton_Click;
             // 
-            // pingButton
+            // startButton
             // 
-            pingButton.Location = new Point(271, 6);
-            pingButton.Name = "pingButton";
-            pingButton.Size = new Size(131, 23);
-            pingButton.TabIndex = 2;
-            pingButton.Text = "Ping";
-            pingButton.UseVisualStyleBackColor = true;
-            pingButton.Click += pingButton_Click;
-            // 
-            // receiveButton
-            // 
-            receiveButton.Location = new Point(137, 6);
-            receiveButton.Name = "receiveButton";
-            receiveButton.Size = new Size(131, 23);
-            receiveButton.TabIndex = 1;
-            receiveButton.Text = "Receive";
-            receiveButton.UseVisualStyleBackColor = true;
-            receiveButton.Click += receiveButton_Click;
-            // 
-            // transmitButton
-            // 
-            transmitButton.Location = new Point(3, 6);
-            transmitButton.Name = "transmitButton";
-            transmitButton.Size = new Size(131, 23);
-            transmitButton.TabIndex = 0;
-            transmitButton.Text = "Transmit";
-            transmitButton.UseVisualStyleBackColor = true;
-            transmitButton.Click += transmitButton_Click;
+            startButton.Location = new Point(365, 16);
+            startButton.Name = "startButton";
+            startButton.Size = new Size(81, 32);
+            startButton.TabIndex = 2;
+            startButton.Text = "Start";
+            startButton.UseVisualStyleBackColor = true;
+            startButton.Click += startButton_Click;
             // 
             // statusStrip1
             // 
             statusStrip1.Items.AddRange(new ToolStripItem[] { statusLabel });
-            statusStrip1.Location = new Point(10, 414);
+            statusStrip1.Location = new Point(10, 426);
             statusStrip1.Name = "statusStrip1";
             statusStrip1.Size = new Size(548, 22);
             statusStrip1.TabIndex = 3;
@@ -316,28 +373,23 @@
             statusLabel.Size = new Size(66, 17);
             statusLabel.Text = "statusLabel";
             // 
-            // inputTextBox
-            // 
-            inputTextBox.Location = new Point(10, 272);
-            inputTextBox.Name = "inputTextBox";
-            inputTextBox.Size = new Size(389, 23);
-            inputTextBox.TabIndex = 5;
-            // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(568, 446);
+            ClientSize = new Size(568, 458);
             Controls.Add(statusStrip1);
             Controls.Add(panel2);
-            Controls.Add(panel1);
+            Controls.Add(paramsPanel);
             Name = "MainForm";
             Padding = new Padding(10);
-            Text = "Form1";
-            panel1.ResumeLayout(false);
-            panel1.PerformLayout();
+            Text = "RS232";
+            paramsPanel.ResumeLayout(false);
+            paramsPanel.PerformLayout();
             panel2.ResumeLayout(false);
             panel2.PerformLayout();
+            radioGroupBox.ResumeLayout(false);
+            radioGroupBox.PerformLayout();
             statusStrip1.ResumeLayout(false);
             statusStrip1.PerformLayout();
             ResumeLayout(false);
@@ -346,7 +398,7 @@
 
         #endregion
 
-        private Panel panel1;
+        private Panel paramsPanel;
         private Panel panel2;
         private RichTextBox textBox;
         private Label label8;
@@ -358,9 +410,7 @@
         private Label label2;
         private Label label1;
         private Button stopButton;
-        private Button pingButton;
-        private Button receiveButton;
-        private Button transmitButton;
+        private Button startButton;
         private StatusStrip statusStrip1;
         private ToolStripStatusLabel statusLabel;
         private ComboBox portCombo;
@@ -373,5 +423,11 @@
         private ComboBox boudRateCombo;
         private Button sendButton;
         private TextBox inputTextBox;
+        private RadioButton receiveRadioButton;
+        private RadioButton transmitRadioButton;
+        private GroupBox radioGroupBox;
+        private CheckBox echoCheckBox;
+        private Button pingButton;
+        private RadioButton transceiveRadioButton;
     }
 }
